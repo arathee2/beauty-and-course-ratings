@@ -1,0 +1,142 @@
+---
+title: "Beauty and Teaching Quality"
+author: "Amandeep Rathee and Shota Takeshima"
+date: "10/18/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE, message=FALSE, eval=FALSE, warning=FALSE}
+
+library(lme4)
+library(lmerTest)
+library(ggplot2)
+
+# Read in the data
+beauty <- read.table ("Beauty.txt", header=T, sep=" ")
+
+```
+
+# Q1: Distribution of Response Variable
+
+The distribution of **response variable is not perfectly normal** because it's a little skewed towards left. Having said that, it is definitely better than what we get after applying the log and square root transformations. A transformation that looks promising in this case is the square of the response variable but it has multiple missing bars in it.
+
+Therefore, **we'll use the response without any transformation**.
+
+
+```{r include=FALSE, message=FALSE, eval=FALSE, warning=FALSE}
+
+ggplot(data=beauty, aes(x=(eval^2))) + geom_histogram()
+
+```
+
+# Q2: Analysing *Beauty*, *Eval* and *CourseID*
+
+Looking at scatterplot between *beauty* and *eval*, it seems like there is no significant relationship between them and the scatterplot looks similar to a **random noise**.
+
+Now, if we explore the same relation by each *courseID*, we observe that number of data points in most of the courses are in single digits which makes it harder to comment on the trend. In the courses where there are enough data points, we see no discernible pattern.
+
+```{r include=FALSE, message=FALSE, eval=FALSE, warning=FALSE}
+
+# eval and beauty
+
+ggplot(data=beauty, aes(x=beauty, y=eval)) + geom_point()
+
+ggplot(data=beauty, aes(x=beauty, y=eval)) + geom_point() + facet_wrap(~as.factor(courseID))
+```
+
+
+# Q3: 
+
+By exploring the relationship between *eval*, *beauty* by *profnumber*, we observe two things:
+
+1. The range of *eval* and the mean *eval* is varying across professors. This hints that **we should try a random intercept model**.
+2. *beauty* rating for each professor is not varying a lot. In fact, it looks as if each professor has got the same rating. Because this trend is fixed for each professor, and the predictor *beauty* is not varying, we **should refrain from using a random slope model**.
+
+
+```{r include=FALSE, message=FALSE, eval=FALSE, warning=FALSE}
+
+# beauty and profnumber
+
+ggplot(beauty, aes(x=beauty, y=eval)) +
+  geom_point() +
+  facet_wrap(~profnumber)
+
+```
+
+# Q4: Exploring Other Relationships
+
+There are some interesting relationships between response and other variables as listed below. We used scatterplots and anova tests to come up with these.
+
+1. **One-credit courses** are rated significantly higher than normal courses. 
+
+2. **Professors with undergrad in non-English** speaking country have significantly lower course rating on average.
+
+3. **Female professors** tend to have lower eval score on average. 
+
+4. **Tenured professors** get lower rating on average. Perhaps because they focus more on research as compared to non-tenured professors who focus more on pedagody.
+
+We can't use *profevaluation* as a predictor because for a professor who is teaching a class for the first time, *profevaluation* will not be applicable. It is only after the professor finishes at least one course that he will have an average rating for themselves. Therefore we can't use it as a predictor for course rating..
+
+# Q5: Varying Intercept Model - 1
+
+We've fitted a hierarchical model with varying intercept and fixed slope across all professor ids. The average model is as follows:
+
+$eval = 3.93 + 0.11 \times beauty $
+
+This is the "average" regression line. The intercept of 3.93 is the average intercept value across all the professor ids. And the slope 0.11 is fixed across all professors. This line means that an increase in one unit in *beauty* results in an increase of 0.11 units in course rating. The basline course rating is 3.93 when value of beauty score is 0.
+
+Now, this baseline varies across professors because we have a separate intercept for each regression line professor id. For instance, the regression line for professor with id #71 has an intercept of 4.76 whereas the regression line for professor with id #15 has an intercept of 3.22.
+
+# Q6: Varying Intercept Model - 2
+
+We've fitted a hierarchical model with varying intercept and fixed slope across all professor ids with *beauty*, *onecredit*, *female* and *nonenglish* as the predictors. The equation for the "average" model where the intercept is average of all the intercepts is shown below:
+
+$eval = 4.03 + 0.14 \times beauty + 0.46 \times onecredit - 0.2 \times female - 0.35 \times nonenglish$
+
+The model tells us that for unit increase in *beauty*, course rating increases by 0.14 units, and for female professors the course rating decreases by 0.2 as compared to the male professors. For professors who completed their undergrad in a non-English speaking country, the course rating decreases by 0.35 as compared to professor who completed their degree in English speaking country. Finally, one credit courses have rating that's higher by 0.46 as compared to other courses.
+
+Since this is a varying intercept model, we observe that the intercept of professors vary from 3.2 to 4.58.
+
+# Q7:
+
+Amandeep will do till Sunday.
+
+# Q8:
+
+Shota can experiment here
+
+# Q9:
+Shota can experiment here
+
+
+# Q10:
+Shota can experiment here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
