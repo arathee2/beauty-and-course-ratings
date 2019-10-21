@@ -10,18 +10,29 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r include=FALSE, message=FALSE, eval=FALSE, warning=FALSE}
+```{r include=FALSE, message=FALSE, eval=TRUE, warning=FALSE}
 
 library(lme4)
 library(lmerTest)
 library(ggplot2)
+library(gridExtra)
 
 # Read in the data
 beauty <- read.table ("Beauty.txt", header=T, sep=" ")
 
+beauty$tenured <- factor(beauty$tenured)
+beauty$minority <- factor(beauty$minority)
+beauty$female <- factor(beauty$female)
+beauty$formal <- factor(beauty$formal)
+beauty$lower <- factor(beauty$lower)
+beauty$multipleclass <- factor(beauty$multipleclass)
+beauty$nonenglish <- factor(beauty$nonenglish)
+beauty$onecredit <- factor(beauty$onecredit)
+beauty$tenuretrack <- factor(beauty$tenuretrack)
+
 ```
 
-# Q1: Distribution of Response Variable
+## Q1: Distribution of Response Variable
 
 The distribution of **response variable is not perfectly normal** because it's a little skewed towards left. Having said that, it is definitely better than what we get after applying the log and square root transformations. A transformation that looks promising in this case is the square of the response variable but it has multiple missing bars in it.
 
@@ -34,7 +45,7 @@ ggplot(data=beauty, aes(x=(eval^2))) + geom_histogram()
 
 ```
 
-# Q2: Analysing *Beauty*, *Eval* and *CourseID*
+## Q2: Analysing *Beauty*, *Eval* and *CourseID*
 
 Looking at scatterplot between *beauty* and *eval*, it seems like there is no significant relationship between them and the scatterplot looks similar to a **random noise**.
 
@@ -50,7 +61,7 @@ ggplot(data=beauty, aes(x=beauty, y=eval)) + geom_point() + facet_wrap(~as.facto
 ```
 
 
-# Q3: 
+## Q3: 
 
 By exploring the relationship between *eval*, *beauty* by *profnumber*, we observe two things:
 
@@ -68,7 +79,7 @@ ggplot(beauty, aes(x=beauty, y=eval)) +
 
 ```
 
-# Q4: Exploring Other Relationships
+## Q4: Exploring Other Relationships
 
 There are some interesting relationships between response and other variables as listed below. We used scatterplots and anova tests to come up with these.
 
@@ -82,42 +93,87 @@ There are some interesting relationships between response and other variables as
 
 We can't use *profevaluation* as a predictor because for a professor who is teaching a class for the first time, *profevaluation* will not be applicable. It is only after the professor finishes at least one course that he will have an average rating for themselves. Therefore we can't use it as a predictor for course rating..
 
-# Q5: Varying Intercept Model - 1
+## Q5: Varying Intercept Model - 1
 
 We've fitted a hierarchical model with varying intercept and fixed slope across all professor ids. The average model is as follows:
 
-$eval = 3.93 + 0.11 \times beauty $
+$$eval = 3.93 + 0.11 \times beauty$$
+
+
 
 This is the "average" regression line. The intercept of 3.93 is the average intercept value across all the professor ids. And the slope 0.11 is fixed across all professors. This line means that an increase in one unit in *beauty* results in an increase of 0.11 units in course rating. The basline course rating is 3.93 when value of beauty score is 0.
 
 Now, this baseline varies across professors because we have a separate intercept for each regression line professor id. For instance, the regression line for professor with id #71 has an intercept of 4.76 whereas the regression line for professor with id #15 has an intercept of 3.22.
 
-# Q6: Varying Intercept Model - 2
+## Q6: Varying Intercept Model - 2
 
 We've fitted a hierarchical model with varying intercept and fixed slope across all professor ids with *beauty*, *onecredit*, *female* and *nonenglish* as the predictors. The equation for the "average" model where the intercept is average of all the intercepts is shown below:
 
-$eval = 4.03 + 0.14 \times beauty + 0.46 \times onecredit - 0.2 \times female - 0.35 \times nonenglish$
+$$eval = 4.03 + 0.14 \times beauty + 0.46 \times onecredit - 0.2 \times female - 0.35 \times nonenglish$$
 
-The model tells us that for unit increase in *beauty*, course rating increases by 0.14 units, and for female professors the course rating decreases by 0.2 as compared to the male professors. For professors who completed their undergrad in a non-English speaking country, the course rating decreases by 0.35 as compared to professor who completed their degree in English speaking country. Finally, one credit courses have rating that's higher by 0.46 as compared to other courses.
+**Model interpretation**: The model tells us that for unit increase in *beauty*, course rating increases by 0.14 units, and for female professors the course rating decreases by 0.2 as compared to the male professors. For professors who completed their undergrad in a non-English speaking country, the course rating decreases by 0.35 as compared to professor who completed their degree in English speaking country. Finally, one credit courses have rating that's higher by 0.46 as compared to other courses.
 
 Since this is a varying intercept model, we observe that the intercept of professors vary from 3.2 to 4.58.
 
-# Q7:
+## Q7: 
 
-Amandeep will do till Sunday.
-
-# Q8:
-
-Shota can experiment here
-
-# Q9:
-Shota can experiment here
+Looking at the model from the previous question, the the variation in average ratings across professors is 0.1387.
 
 
-# Q10:
-Shota can experiment here
+
+## Q8:
+
+Here we have fitted the following model where the slope for beauty as well as the intercept both are varying across different courses.
+
+$$eval = 0.05 + 0.027 \times beauty$$
+
+The average coefficient of *beauty* is 0.027. But since this coeffieint is varying across different course IDs, it's **standard deviation** is 0.16. Looking at all the values of this coefficient, we find that their range is [-0.18, +0.19].
+
+The fixed intercept changed from 4.0 to 3.94 which is not that big of a change.
+
+## Q9: Interesting Findings
+
+1. Professors who have their degree in **non-English speaking country receive 10% lower course ratings** as shown below.
 
 
+2. **Females receive 5% lower course ratings** on average as shown by the following graph.
+
+Both of the above findings have been confirmed by ANOVA test.
+
+
+
+```{r include=TRUE, message=FALSE, eval=TRUE, warning=FALSE, echo=FALSE}
+p1 <- ggplot(beauty, aes(y=eval, x=as.factor(nonenglish))) + 
+  geom_boxplot() + 
+  labs(x="Undergrad in Non-English Speaking Country", y="Course Rating", title="Course Rating and Professor's Undergrad Country") +
+  theme(title =element_text(size=7))
+
+p2 <- ggplot(beauty, aes(y=eval, x=female)) + 
+  geom_boxplot() +
+  labs(x="Is female?", y="Course Rating", title="Female Professors and Course Ratings") + 
+  theme(title =element_text(size=7))
+
+
+grid.arrange(p1,p2, ncol = 2)
+
+```
+
+
+## Q10:
+
+We should control for *onecredit* because it looked like a significant class-level variable while exploring the data. Therefore, we've fitted the following model with varying intercept and varying slope for beauty. However, the slope of onecredit is fixed. Our "Average" model and the coefficient table is shown below.
+
+$$eval = 3.92 + 0.04 \times beauty + 0.59 \times onecredit$$
+
+
+Variable      | Coefficient     |   Fixed/Varying       
+------------- | -------------   | ------------------
+(Intercept)   |     3.92        |      Varying
+beauty        |     0.04        |      Varying
+onecredit     |     0.59        |      Fixed
+
+
+*onecredit* is significant with at alpha 0.001. Professors who teach a one credit class receive a course rating that is 0.59 points higher than other classes.
 
 
 

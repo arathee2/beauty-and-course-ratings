@@ -1,6 +1,7 @@
 library(lme4)
 library(lmerTest)
 library(gridExtra)
+library(ggplot2)
 
 # Read in the data
 beauty <- read.table ("Beauty.txt", header=T, sep=" ")
@@ -34,7 +35,9 @@ ggplot(beauty, aes(y=eval, x=minority)) + geom_boxplot()
 summary(aov(eval ~ minority, beauty))
 
 # females have lower evaluation on average
-ggplot(beauty, aes(y=eval, x=female)) + geom_boxplot()
+ggplot(beauty, aes(y=eval, x=female)) + 
+  geom_boxplot() +
+  labs(x="Is female?", y="Course Rating", title="Course Ratings of Female Professors")
 summary(aov(eval ~ female, beauty))
 
 ggplot(beauty, aes(y=eval, x=beauty)) + geom_point()
@@ -57,7 +60,9 @@ ggplot(beauty, aes(y=eval, x=multipleclass)) + geom_boxplot()
 summary(aov(eval ~ multipleclass, beauty))
 
 # professor with undergrad in non-English speaking country tend to have lower evaluation score
-ggplot(beauty, aes(y=eval, x=nonenglish)) + geom_boxplot()
+ggplot(beauty, aes(y=eval, x=nonenglish)) + 
+  geom_boxplot() + 
+  labs(x="Undergrad in Non-English Speaking Country", y="Course Rating", title="Course Rating of Professors")
 summary(aov(eval ~ nonenglish, beauty))
 
 
@@ -197,5 +202,60 @@ p2 <- ggplot(newdata, aes(x = beauty, y = pred, colour = courseID)) +
 
 
 grid.arrange(p1,p2, ncol = 2)
+
+
+# 8
+
+intercept.model <- lmer(eval ~ (1 + beauty | courseID), data = beauty) 
+summary(intercept.model)
+
+coef(intercept.model)
+confint(intercept.model)
+fixef(intercept.model)
+ranef(intercept.model)
+
+
+# 10
+
+intercept.model <- lmer(eval ~ (1 + beauty | courseID) + onecredit, data = beauty) 
+summary(intercept.model)
+
+coef(intercept.model)
+confint(intercept.model)
+fixef(intercept.model)
+ranef(intercept.model)
+
+tapply(beauty$profevaluation, beauty$profnumber, var)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
